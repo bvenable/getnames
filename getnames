@@ -1,0 +1,30 @@
+#!/bin/sh
+if [ "$1" = "silly" ]; then
+	generator=sillyhero
+elif [ "$1" = "female" ]; then
+	generator=quickname
+	type=FNAME
+elif [ "$1" = "male" ]; then
+	generator=quickname
+	type=MNAME
+elif [ "$1" = "greek" ]; then
+	generator=greeknamer
+elif [ "$1" = "lovecraft" -o "$1" = "cthulhu" ]; then
+	generator=lcnamer
+elif [ "$1" = "brandx" ]; then
+	url="http://www.hoboes.com/RPG/BrandX/Gallery/names/"
+#	filter="iconv -f utf8 -t ascii//TRANSLIT | /usr/local/bin/html2text  | egrep \"^\[\" | head -50 | cut -f2 -d\[ | cut -f1 -d\] | sort | uniq | rl -c20"
+	filter="html2text | fgrep male | awk '{print \$2}' | sed 's/_/ /g' | rl -c20"
+elif [ "$1" = "old" ]; then
+	generator=superheroname
+else
+	generator=superheronameorg
+fi;
+if [ -z "$url" ]; then
+	url="http://www.seventhsanctum.com/generate.php?Genname=${generator}&selGenCount=20&selGenType=${type}"
+fi
+if [ -z "$filter" ]; then
+	w3m -dump "$url" 2>/dev/null | sed -n '/^Names$/,/^\s*Please/p' | egrep -v "^Names$|^\s*Please" | egrep [[:alpha:]] | sort | uniq
+else
+	curl "$url" 2>/dev/null| eval $filter
+fi
